@@ -9,8 +9,7 @@ and extract it to use the app on Windows OS. I put a shortcut in Startup folder 
 ### Main goal was to create a lightweight app that shows nepali calendar. Language can also be selected in right-click menu.
 <img width="577" height="603" alt="image" src="https://github.com/user-attachments/assets/b041a239-75f1-4403-9aa6-34fd5083d75f" />
 
-## Here's some AI text if you want to bother reading them.
-
+## Here's some helpful AI texts.
 # Nepali Date Tray
 
 A lightweight Windows system tray app that shows the current **Bikram Sambat (Nepali)** date.
