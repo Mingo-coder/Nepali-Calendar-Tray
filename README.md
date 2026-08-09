@@ -1,12 +1,10 @@
-# Shows Nepali Calendar in Tray area
-<img width="138" height="93" alt="image" src="https://github.com/user-attachments/assets/a146ba01-7bd7-4f21-a39e-b19b926adb3d" />
+# Shows Nepali Calendar in Tray area, can show overlay of today's date and the whole calendar on a lightweight app.
+<img width="216" height="112" alt="image" src="https://github.com/user-attachments/assets/df7990a3-30d2-4569-9c07-2b63da3f960f" />
 
-### Made using Grok and produces no error as far as I have seen. I'm unable to make it show the whole date in tray so that is the only thing broken here.
+#### Please download the latest zip file from the Release tab or https://github.com/Mingo-coder/Nepali-Calendar-Tray/releases/download/v1.2/NepaliTray.zip
+and extract it to use the app on Windows OS. I put a shortcut of the app in Startup folder so it starts with windows everytime.
 
-#### Please download the zip file for the Release tab or https://github.com/Mingo-coder/Nepali-Calendar-Tray/releases/download/v1.0/NepaliTray.zip
-and extract it to use the app on Windows OS. I put a shortcut in Startup folder so it starts with windows everytime.
-
-### Main goal was to create a lightweight app that shows nepali calendar. Language can also be selected in right-click menu.
+#### Made using Grok and produces no error as far as I have seen. Main goal was to create a lightweight app that shows nepali calendar. Language can also be selected in right-click menu.
 <img width="577" height="603" alt="image" src="https://github.com/user-attachments/assets/b041a239-75f1-4403-9aa6-34fd5083d75f" />
 
 ## Here's some helpful AI texts.
@@ -18,6 +16,7 @@ A lightweight Windows system tray app that shows the current **Bikram Sambat (Ne
 
 - Displays today’s Nepali date in the system tray
 - Large clear day number (with optional full short date mode)
+- Small drag-able Overlay of Today's date
 - Green highlight on Saturdays and Sundays
 - Red highlight on Weekdays
 - Left-click opens a clean Nepali calendar
