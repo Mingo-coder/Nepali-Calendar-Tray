@@ -1,7 +1,7 @@
 # Shows Nepali Calendar in Tray area, can show overlay of today's date and the whole calendar on a lightweight app.
 <img width="216" height="112" alt="image" src="https://github.com/user-attachments/assets/df7990a3-30d2-4569-9c07-2b63da3f960f" />
 
-#### Please download the latest zip file from the Release tab or https://github.com/Mingo-coder/Nepali-Calendar-Tray/releases/download/v1.2/NepaliTray.zip
+#### Please download the latest zip file from the Release tab or https://github.com/Mingo-coder/Nepali-Calendar-Tray/releases/download/1.3/NepaliTray.zip
 and extract it to use the app on Windows OS. I put a shortcut of the app in Startup folder so it starts with windows everytime.
 
 #### Made using Grok and produces no error as far as I have seen. Main goal was to create a lightweight app that shows nepali calendar. Language can also be selected in right-click menu.
