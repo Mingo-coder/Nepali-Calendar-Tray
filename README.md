@@ -4,44 +4,81 @@
 #### Please download the latest zip file from the Release tab or https://github.com/Mingo-coder/Nepali-Calendar-Tray/releases/download/v1.6/NepaliTray.zip
 and extract it to use the app on Windows OS. I put a shortcut of the app in Startup folder so it starts with windows everytime.
 
-#### Made using Grok and produces no error as far as I have seen. Main goal was to create a lightweight app that shows nepali calendar. Language can also be selected in right-click menu.
-<img width="577" height="603" alt="image" src="https://github.com/user-attachments/assets/b041a239-75f1-4403-9aa6-34fd5083d75f" />
+##### Made using Grok and produces no error as far as I have seen.
 
 ## Here's some helpful AI texts.
-# Nepali Date Tray
-
-A lightweight Windows system tray app that shows the current **Bikram Sambat (Nepali)** date.
+# NepaliTray
+<img width="577" height="603" alt="image" src="https://github.com/user-attachments/assets/b041a239-75f1-4403-9aa6-34fd5083d75f" />
+A lightweight Windows system tray app for Nepali (Bikram Sambat) dates.
 
 ## Features
 
-- Displays today’s Nepali date in the system tray
-- Large clear day number (with optional full short date mode)
-- Small drag-able Overlay of Today's date
-- Green highlight on Saturdays and Sundays
-- Red highlight on Weekdays
-- Left-click opens a clean Nepali calendar
-- Navigate between months with ← → buttons
-- Week starts from Sunday
-- Weekends highlighted in red
-- Language toggle (Nepali ↔ English)
-- Single instance protection
-- Lightweight and offline
+### Tray Icon
+- Shows today’s Nepali day number in the system tray
+- Weekend days use a red background
+- Weekdays use a blue background
+- Tooltip shows full date with weekday
+- Supports Nepali and English display modes
+
+### Calendar Popup
+- Full monthly Bikram Sambat calendar
+- Sunday-first week layout
+- Saturday and Sunday highlighted in red
+- Today highlighted clearly
+- Previous / next month navigation
+- Editable year field (type a year and press Enter)
+- Pin button to keep calendar open
+- Today button to jump back to current date
+- Auto-closes when clicking outside (unless pinned)
+
+### Custom Context Menu
+- Large readable Nepali font
+- Copy options:
+  - Nepali date
+  - Nepali time
+  - Nepali date + time
+  - English date
+  - English time
+  - English date + time
+- Open calendar
+- Toggle overlay
+- Toggle always-on-top
+- Toggle draggable overlay
+- Switch language (Nepali ↔ English)
+- Quit app
+
+### Floating Overlay
+- Optional always-visible date overlay
+- Shows month, day, and weekday
+- Weekend text in red
+- Draggable
+- Always-on-top option
+- Remembers last position
+
+### Click Behavior
+- Single left-click → custom menu
+- Double left-click → calendar
+- Right-click → small system menu (Open / Quit)
+
+### Calendar Engine
+- Pure hybrid Bikram Sambat engine
+- Accurate month-length table for **1975–2100 BS**
+- Approximation fallback outside that range
+
+### Other
+- Single-instance lock (prevents duplicate apps)
+- Language toggle updates tray icon, tooltip, calendar, and menus
+- Lightweight Python tray app for Windows
 
 ## Requirements
+- Python 3.x
+- Windows
+- Packages:
+  - `pystray`
+  - `pillow`
+  - `pyperclip`
 
-- Windows 10 / 11
-- No extra installation needed when using the pre-built version
-
-## How to Run
-
-1. Download the latest release
-2. Extract the folder
-3. Run `NepaliDate.exe`
-
-## Building from Source
-
+## Run
 ```bash
-pip install pystray pillow nepali-datetime
-
-# Build (recommended)
-pyinstaller --onedir --noconsole --name "NepaliDate" --collect-all nepali_datetime nepali_tray.py
+pip install pystray pillow pyperclip
+python NepaliTray.py
