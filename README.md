@@ -1,5 +1,6 @@
 ### Shows Nepali Calendar in Tray area, can show overlay of today's date and the whole calendar on a lightweight app.
 <img width="216" height="112" alt="image" src="https://github.com/user-attachments/assets/df7990a3-30d2-4569-9c07-2b63da3f960f" />
+
 #### Consumes about 19mb of ram and uses 36.6mb of disk space.
 
 #### Please download the latest zip file from the Release tab or https://github.com/Mingo-coder/Nepali-Calendar-Tray/releases/download/v1.6/NepaliTray.zip
