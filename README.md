@@ -9,6 +9,7 @@ and extract it to use the app on Windows OS. I put a shortcut of the app in Star
 ## Here's some helpful AI texts.
 # NepaliTray
 <img width="577" height="603" alt="image" src="https://github.com/user-attachments/assets/b041a239-75f1-4403-9aa6-34fd5083d75f" />
+
 A lightweight Windows system tray app for Nepali (Bikram Sambat) dates.
 
 ## Features
