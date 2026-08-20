@@ -8,10 +8,10 @@ and extract it to use the app on Windows OS. I put a shortcut of the app in Star
 
 ##### Made using Grok and produces no error as far as I have seen.
 
-## Here's some helpful AI texts.
-# NepaliTray
 <img width="577" height="603" alt="image" src="https://github.com/user-attachments/assets/b041a239-75f1-4403-9aa6-34fd5083d75f" />
 
+## Here's some helpful AI texts.
+# NepaliTray
 A lightweight Windows system tray app for Nepali (Bikram Sambat) dates.
 
 ## Features
@@ -34,8 +34,7 @@ A lightweight Windows system tray app for Nepali (Bikram Sambat) dates.
 - Today button to jump back to current date
 - Auto-closes when clicking outside (unless pinned)
 
-### Custom Context Menu
-- Large readable Nepali font
+### Context Menu
 - Copy options:
   - Nepali date
   - Nepali time
@@ -59,9 +58,8 @@ A lightweight Windows system tray app for Nepali (Bikram Sambat) dates.
 - Remembers last position
 
 ### Click Behavior
-- Single left-click → custom menu
-- Double left-click → calendar
-- Right-click → small system menu (Open / Quit)
+- Single left-click → Open Calendar
+- Right-click → Context Menu
 
 ### Calendar Engine
 - Pure hybrid Bikram Sambat engine
