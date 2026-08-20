@@ -2,7 +2,7 @@ import threading
 import time
 import socket
 import sys
-from datetime import date, datetime
+from datetime import date
 from typing import List, Dict, Tuple
 from PIL import Image, ImageDraw, ImageFont
 import pystray
@@ -10,6 +10,39 @@ from pystray import MenuItem as item
 import tkinter as tk
 from tkinter import font as tkfont
 import pyperclip
+import os
+
+def resource_path(relative_path: str) -> str:
+    """Get path for normal run and PyInstaller onedir/onefile."""
+    if hasattr(sys, "_MEIPASS"):
+        base = sys._MEIPASS
+    else:
+        base = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base, relative_path)
+
+
+def get_tray_font(size: int):
+    font_candidates = [
+        # bundled font first
+        resource_path("fonts/NirmalaB.ttf"),
+        resource_path("NirmalaB.ttf"),
+
+        # system fallbacks
+        r"C:\Windows\Fonts\NirmalaB.ttf",
+        r"C:\Windows\Fonts\Nirmala.ttf",
+        r"C:\Windows\Fonts\mangal.ttf",
+        r"C:\Windows\Fonts\kokila.ttf",
+        r"C:\Windows\Fonts\aparaj.ttf",
+    ]
+
+    for path in font_candidates:
+        try:
+            if os.path.exists(path):
+                return ImageFont.truetype(path, size)
+        except Exception:
+            continue
+
+    return ImageFont.load_default()
 
 # ============================================================
 # HYBRID BIKRAM SAMBAT ENGINE
@@ -147,16 +180,14 @@ NEPALI_MONTHS = ["बैशाख", "जेठ", "असार", "श्रा�
                  "कार्तिक", "मंसिर", "पुस", "माघ", "फाल्गुन", "चैत"]
 ENGLISH_MONTHS = ["Baisakh", "Jestha", "Ashadh", "Shrawan", "Bhadra", "Ashwin",
                   "Kartik", "Mangsir", "Poush", "Magh", "Falgun", "Chaitra"]
-NEPALI_WEEKDAYS = ["आईत", "सोम", "मंगल", "बुध", "बिही", "शुक्र", "शनि"]
-ENGLISH_WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 NEPALI_WEEKDAYS_FULL = ["आईतबार", "सोमबार", "मंगलबार", "बुधबार", "बिहीबार", "शुक्रबार", "शनिबार"]
 ENGLISH_WEEKDAYS_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+NEPALI_WEEKDAYS = ["आईत", "सोम", "मंगल", "बुध", "बिही", "शुक्र", "शनि"]
+ENGLISH_WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 NEPALI_DIGITS = "०१२३४५६७८९"
-
 
 def to_nepali_num(n: int) -> str:
     return "".join(NEPALI_DIGITS[int(d)] for d in str(n))
-
 
 def approximate_month_lengths(bs_year: int) -> List[int]:
     base = [31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30]
@@ -167,14 +198,11 @@ def approximate_month_lengths(bs_year: int) -> List[int]:
     lengths[8] = 29 + (1 if bs_year % 4 == 0 else 0)
     return [max(29, min(32, d)) for d in lengths]
 
-
 def get_month_lengths(bs_year: int) -> List[int]:
     return BS_MONTH_TABLE.get(bs_year, approximate_month_lengths(bs_year))
 
-
 ANCHOR_AD = date(2000, 1, 1)
 ANCHOR_BS = (2056, 9, 17)
-
 
 def ad_to_bs(ad_date: date) -> Tuple[int, int, int]:
     delta = (ad_date - ANCHOR_AD).days
@@ -198,39 +226,30 @@ def ad_to_bs(ad_date: date) -> Tuple[int, int, int]:
             break
     return y, m, d
 
-
 def get_bs_today() -> dict:
     today = date.today()
     y, m, d = ad_to_bs(today)
     weekday = (today.weekday() + 1) % 7
     return {
-        "year": y,
-        "month": m,
-        "day": d,
-        "weekday": weekday,
-        "month_name_np": NEPALI_MONTHS[m - 1],
-        "month_name_en": ENGLISH_MONTHS[m - 1],
+        "year": y, "month": m, "day": d, "weekday": weekday,
+        "month_name_np": NEPALI_MONTHS[m-1],
+        "month_name_en": ENGLISH_MONTHS[m-1],
         "weekday_np": NEPALI_WEEKDAYS[weekday],
         "weekday_en": ENGLISH_WEEKDAYS[weekday],
-        "days_in_month": get_month_lengths(y)[m - 1],
-        "is_accurate": y in BS_MONTH_TABLE,
+        "days_in_month": get_month_lengths(y)[m-1],
+        "is_accurate": y in BS_MONTH_TABLE
     }
 
-
 # ============================================================
-# SETTINGS
+# APP SETTINGS
 # ============================================================
 USE_NEPALI = True
 SHOW_OVERLAY = False
 ALWAYS_ON_TOP = True
 DRAGGABLE = True
 CALENDAR_STAY_OPEN = False
-LAST_OVERLAY_X = None
-LAST_OVERLAY_Y = None
+LAST_OVERLAY_X = LAST_OVERLAY_Y = None
 overlay_root = None
-_tray_icon = None
-_click_count = 0
-
 
 def is_already_running():
     try:
@@ -241,11 +260,9 @@ def is_already_running():
     except OSError:
         return True, None
 
-
 already_running, lock_socket = is_already_running()
 if already_running:
     sys.exit(0)
-
 
 # ============================================================
 # OVERLAY
@@ -262,12 +279,11 @@ class DateOverlay:
 
         try:
             self.font = tkfont.Font(family="Nirmala UI", size=13, weight="bold")
-        except Exception:
+        except:
             self.font = tkfont.Font(family="Segoe UI", size=13, weight="bold")
 
-        self.label = tk.Label(
-            self.root, text="", font=self.font, fg="white", bg="#111111", padx=16, pady=8
-        )
+        self.label = tk.Label(self.root, text="", font=self.font,
+                              fg="white", bg="#111111", padx=16, pady=8)
         self.label.pack()
 
         self.apply_draggable()
@@ -303,11 +319,9 @@ class DateOverlay:
 
     def position_window(self):
         self.root.update_idletasks()
-        w = self.root.winfo_reqwidth()
-        h = self.root.winfo_reqheight()
-        sw = self.root.winfo_screenwidth()
-        sh = self.root.winfo_screenheight()
-        self.root.geometry(f"+{sw - w - 200}+{sh - h - 48}")
+        w, h = self.root.winfo_reqwidth(), self.root.winfo_reqheight()
+        sw, sh = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
+        self.root.geometry(f"+{sw-w-200}+{sh-h-48}")
 
     def schedule_update(self):
         if self.root.winfo_exists():
@@ -315,8 +329,7 @@ class DateOverlay:
             self.root.after(20000, self.schedule_update)
 
     def start_move(self, e):
-        self._x = e.x
-        self._y = e.y
+        self._x, self._y = e.x, e.y
 
     def do_move(self, e):
         global LAST_OVERLAY_X, LAST_OVERLAY_Y
@@ -331,21 +344,18 @@ class DateOverlay:
         overlay_root = None
         self.root.destroy()
 
-
 def run_overlay():
     DateOverlay()
 
-
 def close_overlay():
     global overlay_root, SHOW_OVERLAY
-    if overlay_root is not None:
+    if overlay_root:
         try:
             overlay_root.after(0, overlay_root.destroy)
-        except Exception:
+        except:
             pass
         overlay_root = None
     SHOW_OVERLAY = False
-
 
 # ============================================================
 # CALENDAR
@@ -382,7 +392,8 @@ class NepaliCalendarWindow:
         if self._editing_year or CALENDAR_STAY_OPEN:
             return
         try:
-            if self.root.focus_get() is None:
+            focused = self.root.focus_get()
+            if focused is None:
                 self.root.destroy()
         except Exception:
             pass
@@ -414,22 +425,24 @@ class NepaliCalendarWindow:
         self._editing_year = False
 
     def setup_ui(self):
-        outer = tk.Frame(self.root, bg="#1e1e1e")
-        outer.pack(fill="both", expand=True, padx=16, pady=14)
+        self.outer = tk.Frame(self.root, bg="#1e1e1e")
+        self.outer.pack(fill="both", expand=True, padx=16, pady=14)
 
-        header = tk.Frame(outer, bg="#1e1e1e")
+        header = tk.Frame(self.outer, bg="#1e1e1e")
         header.pack(fill="x", pady=(2, 8))
 
         tk.Button(
-            header, text="◀", font=("Segoe UI", 12, "bold"), bg="#333", fg="white",
-            relief="flat", width=3, command=self.prev_month, cursor="hand2"
+            header, text="◀", font=("Segoe UI", 12, "bold"),
+            bg="#333", fg="white", relief="flat", width=3,
+            command=self.prev_month, cursor="hand2"
         ).pack(side="left")
 
         center = tk.Frame(header, bg="#1e1e1e")
         center.pack(side="left", expand=True)
 
         self.lbl_month = tk.Label(
-            center, text="", font=("Nirmala UI", 13, "bold"), bg="#1e1e1e", fg="white"
+            center, text="", font=("Nirmala UI", 13, "bold"),
+            bg="#1e1e1e", fg="white"
         )
         self.lbl_month.pack(side="left", padx=(0, 4))
 
@@ -452,29 +465,33 @@ class NepaliCalendarWindow:
         self.year_entry.bind("<FocusOut>", self.on_year_enter)
 
         self.btn_pin = tk.Button(
-            header, text="📍", font=("Segoe UI", 11), bg="#333", fg="white",
-            relief="flat", width=3, command=self.toggle_pin, cursor="hand2"
+            header, text="📍", font=("Segoe UI", 11),
+            bg="#333", fg="white", relief="flat", width=3,
+            command=self.toggle_pin, cursor="hand2"
         )
         self.btn_pin.pack(side="left", padx=8)
 
         tk.Button(
-            header, text="▶", font=("Segoe UI", 12, "bold"), bg="#333", fg="white",
-            relief="flat", width=3, command=self.next_month, cursor="hand2"
+            header, text="▶", font=("Segoe UI", 12, "bold"),
+            bg="#333", fg="white", relief="flat", width=3,
+            command=self.next_month, cursor="hand2"
         ).pack(side="right")
 
-        self.grid = tk.Frame(outer, bg="#1e1e1e")
+        self.grid = tk.Frame(self.outer, bg="#1e1e1e")
         self.grid.pack()
 
         weekdays = NEPALI_WEEKDAYS if USE_NEPALI else ENGLISH_WEEKDAYS
         for i, d in enumerate(weekdays):
             color = "#ff5555" if i in (0, 6) else "#bbbbbb"
             tk.Label(
-                self.grid, text=d, width=4, font=("Nirmala UI", 10, "bold"),
+                self.grid, text=d, width=4,
+                font=("Nirmala UI", 10, "bold"),
                 bg="#1e1e1e", fg=color
             ).grid(row=0, column=i, padx=4, pady=5)
 
-        tk.Button(
-            outer,
+        # Create button once, but do not pack yet
+        self.btn_today = tk.Button(
+            self.outer,
             text="आज" if USE_NEPALI else "Today",
             font=("Nirmala UI", 10),
             bg="#444",
@@ -482,7 +499,19 @@ class NepaliCalendarWindow:
             relief="flat",
             command=self.go_today,
             cursor="hand2",
-        ).pack(pady=(16, 4))
+        )
+
+    def update_today_button(self):
+        today = get_bs_today()
+        is_current = (self.year == today["year"] and self.month == today["month"])
+
+        if is_current:
+            self.btn_today.pack(pady=(16, 4))
+            self.btn_today.config(bg="#333", fg="#888888")
+        else:
+            self.btn_today.pack(pady=(16, 4))
+            self.btn_today.config(bg="#0066cc", fg="white")
+            self.btn_today.place(relx=0.5, rely=1.0, anchor="s", x=-1, y=-5, width=35, height=20)
 
     def draw_calendar(self):
         for w in self.grid.winfo_children():
@@ -534,20 +563,18 @@ class NepaliCalendarWindow:
             text = to_nepali_num(day) if USE_NEPALI else str(day)
 
             tk.Label(
-                self.grid,
-                text=text,
-                width=4,
-                height=2,
+                self.grid, text=text, width=4, height=2,
                 font=("Nirmala UI", 12, "bold"),
-                bg=bg,
-                fg=fg,
-                relief="flat",
+                bg=bg, fg=fg, relief="flat"
             ).grid(row=row, column=col, padx=4, pady=3)
 
             col += 1
             if col > 6:
                 col = 0
                 row += 1
+
+        # Hide on current month, show on other months
+        self.update_today_button()
 
     def prev_month(self):
         self.month -= 1
@@ -569,247 +596,10 @@ class NepaliCalendarWindow:
         self.month = bs["month"]
         self.draw_calendar()
 
-
 # ============================================================
-# COPY HELPERS
+# TRAY
 # ============================================================
-def copy_nepali_date(icon=None, item=None):
-    bs = get_bs_today()
-    text = (
-        f"{bs['month_name_np']} {to_nepali_num(bs['day'])}, "
-        f"{NEPALI_WEEKDAYS_FULL[bs['weekday']]} {to_nepali_num(bs['year'])}"
-    )
-    pyperclip.copy(text)
 
-
-def copy_nepali_time(icon=None, item=None):
-    now = datetime.now().strftime("%H:%M:%S")
-    nepali_time = "".join(NEPALI_DIGITS[int(d)] if d.isdigit() else d for d in now)
-    pyperclip.copy(nepali_time)
-
-
-def copy_nepali_both(icon=None, item=None):
-    bs = get_bs_today()
-    now = datetime.now().strftime("%H:%M:%S")
-    nepali_time = "".join(NEPALI_DIGITS[int(d)] if d.isdigit() else d for d in now)
-    text = (
-        f"{bs['month_name_np']} {to_nepali_num(bs['day'])}, "
-        f"{NEPALI_WEEKDAYS_FULL[bs['weekday']]} {to_nepali_num(bs['year'])} {nepali_time}"
-    )
-    pyperclip.copy(text)
-
-
-def copy_english_date(icon=None, item=None):
-    bs = get_bs_today()
-    text = f"{bs['month_name_en']} {bs['day']}, {ENGLISH_WEEKDAYS_FULL[bs['weekday']]} {bs['year']}"
-    pyperclip.copy(text)
-
-
-def copy_english_time(icon=None, item=None):
-    pyperclip.copy(datetime.now().strftime("%H:%M:%S"))
-
-
-def copy_english_both(icon=None, item=None):
-    bs = get_bs_today()
-    now = datetime.now().strftime("%H:%M:%S")
-    text = f"{bs['month_name_en']} {bs['day']}, {ENGLISH_WEEKDAYS_FULL[bs['weekday']]} {bs['year']} {now}"
-    pyperclip.copy(text)
-
-
-def open_calendar(icon=None, item=None):
-    threading.Thread(target=NepaliCalendarWindow, daemon=True).start()
-
-
-def toggle_overlay(icon=None, item=None):
-    global SHOW_OVERLAY
-    if SHOW_OVERLAY:
-        close_overlay()
-    else:
-        SHOW_OVERLAY = True
-        threading.Thread(target=run_overlay, daemon=True).start()
-
-
-def toggle_always_on_top(icon=None, item=None):
-    global ALWAYS_ON_TOP
-    ALWAYS_ON_TOP = not ALWAYS_ON_TOP
-    if overlay_root is not None:
-        try:
-            overlay_root.attributes("-topmost", ALWAYS_ON_TOP)
-        except Exception:
-            pass
-
-
-def toggle_draggable(icon=None, item=None):
-    global DRAGGABLE, SHOW_OVERLAY
-    DRAGGABLE = not DRAGGABLE
-    if SHOW_OVERLAY:
-        close_overlay()
-        time.sleep(0.12)
-        SHOW_OVERLAY = True
-        threading.Thread(target=run_overlay, daemon=True).start()
-
-
-def toggle_language(icon=None, item=None):
-    global USE_NEPALI
-    USE_NEPALI = not USE_NEPALI
-    if _tray_icon is not None:
-        _tray_icon.icon = create_icon()
-        _tray_icon.title = get_tooltip()
-
-
-# ============================================================
-# CUSTOM MENU
-# ============================================================
-class CustomContextMenu:
-    def __init__(self):
-        self.root = tk.Tk()
-        self.root.overrideredirect(True)
-        self.root.configure(bg="#2b2b2b")
-        self.root.attributes("-topmost", True)
-
-        try:
-            self.font = tkfont.Font(family="Nirmala UI", size=12)
-        except Exception:
-            self.font = tkfont.Font(family="Segoe UI", size=12)
-
-        wrap = tk.Frame(
-            self.root, bg="#2b2b2b", highlightbackground="#555555", highlightthickness=1
-        )
-        wrap.pack()
-
-        full = get_tooltip()
-
-        if USE_NEPALI:
-            rows = [
-                ("समय कपि गर्नुहोस्", copy_nepali_time),
-                ("मिति कपि गर्नुहोस्", copy_nepali_date),
-                ("समय र मिति कपि गर्नुहोस्", copy_nepali_both),
-                "sep",
-                ("Time (English)", copy_english_time),
-                ("Date (English)", copy_english_date),
-                ("Time + Date (English)", copy_english_both),
-                "sep",
-                ("पात्रो खोल्नुहोस्", open_calendar),
-                (f"आज: {full}", None),
-                ("ओभरले लुकाउनुहोस्" if SHOW_OVERLAY else "ओभरले देखाउनुहोस्", toggle_overlay),
-                ("सधैं माथि" + (" ✓" if ALWAYS_ON_TOP else ""), toggle_always_on_top),
-                ("तान्न मिल्ने" + (" ✓" if DRAGGABLE else ""), toggle_draggable),
-                ("English", toggle_language),
-                "sep",
-                ("बन्द गर्नुहोस्", on_quit),
-            ]
-        else:
-            rows = [
-                ("Copy Time (Nepali)", copy_nepali_time),
-                ("Copy Date (Nepali)", copy_nepali_date),
-                ("Copy Time + Date (Nepali)", copy_nepali_both),
-                "sep",
-                ("Copy Time", copy_english_time),
-                ("Copy Date", copy_english_date),
-                ("Copy Time + Date", copy_english_both),
-                "sep",
-                ("Open Calendar", open_calendar),
-                (f"Today: {full}", None),
-                ("Hide Overlay" if SHOW_OVERLAY else "Show Overlay", toggle_overlay),
-                ("Always on Top" + (" ✓" if ALWAYS_ON_TOP else ""), toggle_always_on_top),
-                ("Draggable" + (" ✓" if DRAGGABLE else ""), toggle_draggable),
-                ("नेपाली", toggle_language),
-                "sep",
-                ("Quit", on_quit),
-            ]
-
-        for row in rows:
-            if row == "sep":
-                tk.Frame(wrap, bg="#555555", height=1).pack(fill="x", padx=10, pady=5)
-                continue
-
-            text, cmd = row
-            if cmd is None:
-                tk.Label(
-                    wrap, text=text, font=self.font, fg="#999999", bg="#2b2b2b",
-                    anchor="w", padx=16, pady=6
-                ).pack(fill="x")
-                continue
-
-            lbl = tk.Label(
-                wrap, text=text, font=self.font, fg="#ffffff", bg="#2b2b2b",
-                anchor="w", padx=16, pady=7, cursor="hand2"
-            )
-            lbl.pack(fill="x")
-            lbl.bind("<Enter>", lambda e, w=lbl: w.config(bg="#404040"))
-            lbl.bind("<Leave>", lambda e, w=lbl: w.config(bg="#2b2b2b"))
-            lbl.bind("<Button-1>", lambda e, c=cmd: self.activate(c))
-
-        self.root.update_idletasks()
-        w = self.root.winfo_reqwidth()
-        h = self.root.winfo_reqheight()
-        sw = self.root.winfo_screenwidth()
-        sh = self.root.winfo_screenheight()
-        self.root.geometry(f"+{sw - w - 18}+{sh - h - 58}")
-
-        self.root.bind("<FocusOut>", lambda e: self.close())
-        self.root.bind("<Escape>", lambda e: self.close())
-        self.root.after(50, self.root.focus_force)
-        self.root.mainloop()
-
-    def close(self):
-        try:
-            self.root.destroy()
-        except Exception:
-            pass
-
-    def activate(self, cmd):
-        self.close()
-        time.sleep(0.05)
-        try:
-            cmd()
-        except TypeError:
-            try:
-                cmd(None, None)
-            except Exception:
-                pass
-
-
-def show_context_menu(icon=None, item=None):
-    threading.Thread(target=CustomContextMenu, daemon=True).start()
-
-
-_click_count = 0
-_click_timer = None
-
-
-def on_tray_left_click(icon=None, item=None):
-    global _click_count, _click_timer
-
-    _click_count += 1
-
-    # Second click = calendar right away
-    if _click_count >= 2:
-        if _click_timer is not None:
-            try:
-                _click_timer.cancel()
-            except Exception:
-                pass
-            _click_timer = None
-        _click_count = 0
-        open_calendar()
-        return
-
-    # First click: wait briefly to see if a second click comes
-    def decide():
-        global _click_count, _click_timer
-        if _click_count == 1:
-            show_context_menu()
-        _click_count = 0
-        _click_timer = None
-
-    _click_timer = threading.Timer(0.22, decide)
-    _click_timer.start()
-
-
-# ============================================================
-# TRAY ICON
-# ============================================================
 def create_icon():
     bs = get_bs_today()
     size = 48
@@ -817,25 +607,22 @@ def create_icon():
     img = Image.new("RGBA", (size, size), bg)
     draw = ImageDraw.Draw(img)
 
+    # Different settings for Nepali vs English
     if USE_NEPALI:
         text = to_nepali_num(bs["day"])
-        font_size = 44
-        y_offset = -11
+        font_size = 40          # Nepali digits
+        y_offset = -12
     else:
         text = str(bs["day"])
-        font_size = 36
-        y_offset = -10
+        font_size = 40          # English digits (slightly smaller looks better)
+        y_offset = -16
 
-    font = None
-    for path in [
-        r"C:\Windows\Fonts\Nirmala.ttf",
-        r"C:\Windows\Fonts\mangalb.ttf",
-        r"C:\Windows\Fonts\arial.ttf",
-    ]:
+    font = get_tray_font(font_size)
+    for path in [r"C:\Windows\Fonts\NirmalaB.ttf", r"C:\Windows\Fonts\mangalb.ttf", r"C:\Windows\Fonts\arial.ttf"]:
         try:
             font = ImageFont.truetype(path, font_size)
             break
-        except Exception:
+        except:
             continue
     if font is None:
         font = ImageFont.load_default()
@@ -843,18 +630,127 @@ def create_icon():
     bbox = draw.textbbox((0, 0), text, font=font)
     tw = bbox[2] - bbox[0]
     th = bbox[3] - bbox[1]
+
     x = (size - tw) // 2
     y = (size - th) // 2 + y_offset
+
     draw.text((x, y), text, fill=(255, 255, 255), font=font)
     return img
-
 
 def get_tooltip():
     bs = get_bs_today()
     if USE_NEPALI:
         return f"{bs['month_name_np']} {to_nepali_num(bs['day'])}, {NEPALI_WEEKDAYS_FULL[bs['weekday']]}"
-    return f"{bs['month_name_en']} {bs['day']}, {ENGLISH_WEEKDAYS_FULL[bs['weekday']]}"
+    else:
+        return f"{bs['month_name_en']} {bs['day']}, {ENGLISH_WEEKDAYS_FULL[bs['weekday']]}"
 
+from datetime import datetime
+
+def copy_nepali_date(icon=None, item=None):
+    bs = get_bs_today()
+    text = f"{bs['month_name_np']} {to_nepali_num(bs['day'])}, {NEPALI_WEEKDAYS_FULL[bs['weekday']]} {to_nepali_num(bs['year'])}"
+    pyperclip.copy(text)
+
+def copy_nepali_time(icon=None, item=None):
+    now = datetime.now().strftime("%H:%M:%S")
+    nepali_time = "".join(NEPALI_DIGITS[int(d)] if d.isdigit() else d for d in now)
+    pyperclip.copy(nepali_time)
+
+def copy_nepali_both(icon=None, item=None):
+    bs = get_bs_today()
+    now = datetime.now().strftime("%H:%M:%S")
+    nepali_time = "".join(NEPALI_DIGITS[int(d)] if d.isdigit() else d for d in now)
+    text = f"{bs['month_name_np']} {to_nepali_num(bs['day'])}, {NEPALI_WEEKDAYS_FULL[bs['weekday']]} {to_nepali_num(bs['year'])}  {nepali_time}"
+    pyperclip.copy(text)
+
+def copy_english_date(icon=None, item=None):
+    bs = get_bs_today()
+    text = f"{bs['month_name_en']} {bs['day']}, {ENGLISH_WEEKDAYS_FULL[bs['weekday']]} {bs['year']}"
+    pyperclip.copy(text)
+
+def copy_english_time(icon=None, item=None):
+    pyperclip.copy(datetime.now().strftime("%H:%M:%S"))
+
+def copy_english_both(icon=None, item=None):
+    bs = get_bs_today()
+    now = datetime.now().strftime("%H:%M:%S")
+    text = f"{bs['month_name_en']} {bs['day']}, {ENGLISH_WEEKDAYS_FULL[bs['weekday']]} {bs['year']}  {now}"
+    pyperclip.copy(text)
+
+def open_calendar(icon=None, item=None):
+    threading.Thread(target=NepaliCalendarWindow, daemon=True).start()
+
+def toggle_overlay(icon, item):
+    global SHOW_OVERLAY
+    if SHOW_OVERLAY:
+        close_overlay()
+    else:
+        SHOW_OVERLAY = True
+        threading.Thread(target=run_overlay, daemon=True).start()
+    update_menu(icon)
+
+def toggle_always_on_top(icon, item):
+    global ALWAYS_ON_TOP
+    ALWAYS_ON_TOP = not ALWAYS_ON_TOP
+    if overlay_root:
+        try:
+            overlay_root.attributes("-topmost", ALWAYS_ON_TOP)
+        except:
+            pass
+    update_menu(icon)
+
+def toggle_draggable(icon, item):
+    global DRAGGABLE, SHOW_OVERLAY
+    DRAGGABLE = not DRAGGABLE
+    if SHOW_OVERLAY:
+        close_overlay()
+        time.sleep(0.12)
+        SHOW_OVERLAY = True
+        threading.Thread(target=run_overlay, daemon=True).start()
+    update_menu(icon)
+
+def toggle_language(icon, item):
+    global USE_NEPALI
+    USE_NEPALI = not USE_NEPALI
+    icon.icon = create_icon()
+    icon.title = get_tooltip()
+    update_menu(icon)
+
+def update_menu(icon):
+    full = get_tooltip()
+
+    copy_menu = pystray.Menu(
+        item("समय", copy_nepali_time),
+        item("मिति", copy_nepali_date),
+        item("समय र मिति", copy_nepali_both),
+        item("Time", copy_english_time),
+        item("Date", copy_english_date),
+        item("Time + Date", copy_english_both),
+    )
+
+    if USE_NEPALI:
+        menu = pystray.Menu(
+            item("समय र मिति कपि गर्नुहोस्", copy_menu),
+            item("पात्रो खोल्नुहोस्", open_calendar, default=True),
+            item(f"आज: {full}", None, enabled=False),
+            item("ओभरले लुकाउनुहोस्" if SHOW_OVERLAY else "ओभरले देखाउनुहोस्", toggle_overlay),
+            item("सधैं माथि" + (" ✓" if ALWAYS_ON_TOP else ""), toggle_always_on_top),
+            item("तान्न मिल्ने" + (" ✓" if DRAGGABLE else ""), toggle_draggable),
+            item("English", toggle_language),
+            item("बन्द गर्नुहोस्", on_quit)
+        )
+    else:
+        menu = pystray.Menu(
+            item("Copy Time & Date", copy_menu),
+            item("Open Calendar", open_calendar, default=True),
+            item(f"Today: {full}", None, enabled=False),
+            item("Hide Overlay" if SHOW_OVERLAY else "Show Overlay", toggle_overlay),
+            item("Always on Top" + (" ✓" if ALWAYS_ON_TOP else ""), toggle_always_on_top),
+            item("Draggable" + (" ✓" if DRAGGABLE else ""), toggle_draggable),
+            item("नेपाली", toggle_language),
+            item("Quit", on_quit)
+        )
+    icon.menu = menu
 
 def update_icon(icon):
     while True:
@@ -862,39 +758,21 @@ def update_icon(icon):
         icon.title = get_tooltip()
         time.sleep(60)
 
-
-def on_quit(icon=None, item=None):
+def on_quit(icon, item):
     close_overlay()
-    if _tray_icon is not None:
-        try:
-            _tray_icon.stop()
-        except Exception:
-            pass
-    if lock_socket is not None:
-        try:
-            lock_socket.close()
-        except Exception:
-            pass
-    sys.exit(0)
-
+    icon.stop()
+    if lock_socket:
+        lock_socket.close()
 
 def main():
-    global _tray_icon
-
     icon = pystray.Icon(
         name="NepaliDate",
         icon=create_icon(),
-        title=get_tooltip(),
-        menu=pystray.Menu(
-            item("Open", on_tray_left_click, default=True),
-            item("Quit", on_quit),
-        ),
+        title=get_tooltip()
     )
-    _tray_icon = icon
-
+    update_menu(icon)
     threading.Thread(target=update_icon, args=(icon,), daemon=True).start()
     icon.run()
-
 
 if __name__ == "__main__":
     main()
