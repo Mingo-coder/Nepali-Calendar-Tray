@@ -3,7 +3,7 @@
 
 #### Consumes about 19mb of ram and uses 36.6mb of disk space.
 
-#### Please download the latest zip file from the Release tab or https://github.com/Mingo-coder/Nepali-Calendar-Tray/releases/download/v1.7/NepaliTray1.7.zip
+#### Please download the latest zip file from the Release tab or https://github.com/Mingo-coder/Nepali-Calendar-Tray/releases/download/v1.9/NepaliTray.zip
 and extract it to use the app on Windows OS. I put a shortcut of the app in Startup folder so it starts with windows everytime.
 
 ##### Made using Grok and produces no error as far as I have seen.
